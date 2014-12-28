@@ -1,8 +1,10 @@
+########################################################################
 # Author & Copyright : Peter Luschny
 # Created: 2014-12-12
 # License: LGPL version 2.1 or (at your option)
 # Creative Commons Attribution-ShareAlike 3.0
 ########################################################################
+
 def OEIS(T, num, info=false) :   # needs internet
 
     def is_dead(i):
@@ -13,10 +15,10 @@ def OEIS(T, num, info=false) :   # needs internet
 
     if len(T) < 3: return []
 
-    # disregard the first entry and trailing zeros (important!)
-    i = 1;
-    while T[i] == 0: i += 1
-    S = T[i:min(len(T),20)]
+    # disregard the first entry and trailing zeros
+    i, l = 1, len(T);
+    while i < l and T[i] == 0: i += 1
+    S = T[i:min(l,20)] if (min(l,20) - i) > 6 else T
 
     R = oeis(S, max_results=num)
 
@@ -35,7 +37,7 @@ def OEIS(T, num, info=false) :   # needs internet
 
         L.append(s)
         if info:
-            K = oeis(i).first_terms(12)
+            K = oeis(i).first_terms(10)
             print s, K
 
     return L
@@ -105,6 +107,7 @@ def plot_gfun(B, genfun):
     c += text(genfun, (0,2.25), fontsize=11, color='black')
     c += text('GFun', (0,0), fontsize=22, color='black')
     (b+c+a).show(figsize=8,axes=false)
+
 
 ########################################################################
 ########################################################################
@@ -234,7 +237,7 @@ class gfun(object):
 
     ###############################################
     ## Symbolic Ring -> List
-    def as_seq(self, n, search, typ = 'ogf', coeffs = false, values=false):
+    def as_seq(self, n, search, typ = 'ogf', coeffs = false):
         self.check_prec(n)
 
         if typ == 'egf':
@@ -282,10 +285,10 @@ class gfun(object):
 
     ###############################################
     @staticmethod
-    def explore(fps):
+    def explore_genfun(fps):
         print 'Formal power series: ', fps
         print
-        
+
         B = [0 for _ in range(32)]
         c = 0
 
@@ -301,7 +304,7 @@ class gfun(object):
                     L = func()
                     if is_intseq(L):
                         B[c] = true
-                        print op, funcname, L
+                        print op, funcname, L[:9]
                         O = OEIS(L, 4, info=true)
                         if O <> []:
                             print O
@@ -314,6 +317,46 @@ class gfun(object):
         plot_gfun(B, fps)
         print 'Done!'
 
-########################################################################
-########################################################################
+    ###############################################
+    @staticmethod
+    def explore_values(gen, typ='ogf', rows=6, cols=6):
+        L = gen.values(typ, 9, cols)
+        for n in range(rows):
+            print "row",[n], L[n]
+            print OEIS(L[n],4,info=true)
+            print
+        for n in range(cols):
+            gf = gen.colgenerators(n, typ)
+            M = gfun(gf).as_ogf(9)
+            print "col",[n], M
+            print OEIS(M,4,info=true)
+            print
+        print 'Done!'
 
+    ###############################################
+    # Thanks to Ralf Stephan for help with the implementation.
+    def associates(self, typ = 'ogf', prec=8):
+        from sage.calculus.calculus import symbolic_sum
+        x, j = SR.var('x, j')
+        assume(abs(x)<1)
+        L = []
+        P = self.as_seq(prec, false, typ)
+        for k, m in enumerate(P):
+            p = symbolic_sum(x^j*m.substitute(x=j), j, 0, oo)
+            q = p.numerator().polynomial(ZZ)/p.denominator().polynomial(ZZ)
+            f = q.partial_fraction_decomposition()
+            C = [0 for _ in range(k+1)]
+            for h in f[1]:
+                i = h.denominator().degree()
+                C[i-1] = Integer(h.numerator())
+            L.append(C)
+        return L
+
+    ###############################################
+    def colgenerators(self, n, typ = 'ogf'):
+        from sage.calculus.calculus import symbolic_sum
+        x, j = SR.var('x, j')
+        assume(abs(x)<1)
+        P = self.as_seq(n+1, false, typ)
+        p = symbolic_sum(x^j*P[n].substitute(x=j), j, 0, oo)
+        return p.partial_fraction()
