@@ -256,7 +256,8 @@ class gfun(object):
 
         if coeffs:
             R.<x> = PolynomialRing(QQ)
-            return [R(P[n]).padded_list() for n in range(n)]
+            # padded_list() does not work here!
+            return [[R(P[n])[i] for i in (0..n)] for n in (0..n)]
 
         L = P.padded_list(n)
         if search: print OEIS(L, 4, info=true)
@@ -350,12 +351,12 @@ class gfun(object):
 
     ###############################################
     # Thanks to Ralf Stephan for help with the implementation.
-    def succ(self, typ='ogf', prec=8):
+    def succ(self, typ='ogf', rows=8):
         from sage.calculus.calculus import symbolic_sum
         x, j = SR.var('x, j')
         assume(abs(x) < 1)
         L = []
-        P = self.as_seq(prec, false, typ)
+        P = self.as_seq(rows, false, typ)
         for k, m in enumerate(P):
             p = symbolic_sum(x^j * m.substitute(x=j), j, 0, oo)
             q = p.numerator().polynomial(ZZ) / p.denominator().polynomial(ZZ)
@@ -363,15 +364,15 @@ class gfun(object):
             C = [0 for _ in range(k + 1)]
             for h in f[1]:
                 i = h.denominator().degree() - 1
-                C[i] = Integer((-1)^(k + 1)*h.numerator()/factorial(i))
+                C[i] = Integer((-1)^(k + 1) * h.numerator() / factorial(i))
             L.append(C)
         return L
 
     ###############################################
-    def pred(self, typ = 'ogf', prec=8):
+    def pred(self, typ = 'ogf', rows=8):
         x = SR.var('x')
         PR = PolynomialRing(QQ, 'x')
-        P = self.coeffs(typ, prec)
+        P = self.coeffs(typ, rows)
         A = []
         for n, p in enumerate(P):
             W = sum(factorial(j) * p[j] / (x - 1)^(j + 1) for j in (0..n))
@@ -379,20 +380,19 @@ class gfun(object):
             C = padded_dict(T, n)
             xy = [(k, C[k]) for k in (0..n)]
             L = PR(PR.lagrange_polynomial(xy))
-            A.append([(-1)^(n + 1) * c for c in L.coeffs()])
+            A.append([(-1)^(n + 1) * L[i] for i in (0..n)]) 
         return A
-
 
 ###############################################
 ### Transformations
 ###############################################
-def Succ(T, len):
+def Succ(T, rows):
     from sage.calculus.calculus import symbolic_sum
     x, v = SR.var('x, v')
     PR = PolynomialRing(QQ, 'x')
     assume(abs(x) < 1)
     L = []
-    for k in range(len):
+    for k in range(rows):
         h = PR(sum(T(k,j) * x^j for j in (0..k)))
         p = symbolic_sum(x^v * h.substitute(x=v), v, 0, oo)
         q = p.numerator().polynomial(ZZ) / p.denominator().polynomial(ZZ)
@@ -400,15 +400,15 @@ def Succ(T, len):
         C = [0 for _ in range(k + 1)]
         for h in f[1]:
             i = h.denominator().degree() - 1
-            C[i] = Integer((-1)^(k + 1)*h.numerator() / factorial(i))
+            C[i] = Integer((-1)^(k + 1) * h.numerator() / factorial(i))
         L.append(C)
     return L
 
 ###############################################
-def Pred(T, len):
+def Pred(T, rows):
     PR = PolynomialRing(QQ, 'x')
     A = []
-    for n in range(len):
+    for n in range(rows):
         W = sum(factorial(j) * T(n,j) / (x - 1)^(j + 1) for j in (0..n))
         S = SR(W).taylor(x, 0, n + 2).coefficients()
         C = [0] * (n + 1)
@@ -417,5 +417,5 @@ def Pred(T, len):
             C[s[1]] = s[0]
         xy = [(k, C[k]) for k in (0..n)]
         L = PR(PR.lagrange_polynomial(xy))
-        A.append([(-1)^(n + 1) * c for c in L.coeffs()])
+        A.append([(-1)^(n + 1) * L[i] for i in (0..n)]) 
     return A
