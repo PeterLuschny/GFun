@@ -5,10 +5,10 @@
 # Creative Commons Attribution-ShareAlike 3.0
 ########################################################################
 
-def OEIS(T, num, info=false) :   # needs internet
+def OEIS(T, num, info=false):  # needs internet
 
-    def is_dead(i):
-        for kw in oeis(i).keywords():
+    def is_dead(id):
+        for kw in oeis(id).keywords():
             if kw == 'dead':
                 return true
         return false
@@ -16,14 +16,14 @@ def OEIS(T, num, info=false) :   # needs internet
     if len(T) < 3: return []
 
     # disregard the first entry and trailing zeros
-    i, l = 1, len(T);
+    i, l = 1, len(T)
     while i < l and T[i] == 0: i += 1
-    S = T[i:min(l,20)] if (min(l,20) - i) > 6 else T
+    S = T[i:min(l, 20)] if (min(l, 20) - i) > 6 else T
 
     R = oeis(S, max_results=num)
 
-    if len(R) == 0 :
-        U = filter(lambda z: z != 0 , S)
+    if len(R) == 0:
+        U = filter(lambda z: z != 0, S)
         del U[0]
         R = oeis(U, max_results=num)
 
@@ -42,6 +42,7 @@ def OEIS(T, num, info=false) :   # needs internet
 
     return L
 
+
 ########################################################################
 def padded_dict(T, n):
     """
@@ -59,14 +60,17 @@ def padded_dict(T, n):
     EXAMPLES::
         in:  [[a, 1], [b, 4]], 6
         out: [0, a, 0, 0, b, 0]
+
+        in : [[-2, 1], [-6, 2]], 2
+        out: [0, -2]
     """
-    j = 0
-    L = [0]*(n+1)
+    L = [0] * (n + 1)
+
     for t in T:
-        if j > n: break
-        j += 1
+        if t[1] > n: break
         L[t[1]] = t[0]
     return L
+
 
 ###########################################################
 def is_intseq(seq):
@@ -77,36 +81,37 @@ def is_intseq(seq):
             return false
     return true
 
+
 ###########################################################
 def plot_gfun(B, genfun):
-    GF = ['ogf','egf','lgf','bgf']
-    OP = [' ','rev','inv','exp','der','log','logder','int']
-    rgb = (171/256,141/256,63/256)
-    L = [[0.8*cos(pi*i/4),0.8*sin(pi*i/4)] for i in range(8)]
+    GF = ['ogf', 'egf', 'lgf', 'bgf']
+    OP = [' ', 'rev', 'inv', 'exp', 'der', 'log', 'logder', 'int']
+    rgb = (171 / 256, 141 / 256, 63 / 256)
+    L = [[0.8 * cos(pi * i / 4), 0.8 * sin(pi * i / 4)] for i in range(8)]
     a = polygon2d(L, rgbcolor=rgb)
-    b = circle((0,0), 0.8)
-    c = circle((0,0), 2)
+    b = circle((0, 0), 0.8)
+    c = circle((0, 0), 2)
     m = 0
     for n in range(8):
-        t = n*pi/4
-        z = (0.8*cos(t),0.8*sin(t))
-        u = (0.65*cos(t),0.65*sin(t))
+        t = n * pi / 4
+        z = (0.8 * cos(t), 0.8 * sin(t))
+        u = (0.65 * cos(t), 0.65 * sin(t))
         c += text(OP[n], u)
         for k in range(4):
-            t = (2*m-pi)*pi/32
-            y = (2*cos(t),2*sin(t))
+            t = (2 * m - pi) * pi / 32
+            y = (2 * cos(t), 2 * sin(t))
             if B[m] == 1:
-                c += line([z,y], thickness=3, color='green')
+                c += line([z, y], thickness=3, color='green')
             elif B[m] == -1:
-                c += line([z,y], thickness=3, color='red')
+                c += line([z, y], thickness=3, color='red')
             else:
-                c += line([z,y])
-            v = (2.1*cos(t),2.1*sin(t))
+                c += line([z, y])
+            v = (2.1 * cos(t), 2.1 * sin(t))
             c += text(GF[k], v)
             m += 1
-    c += text(genfun, (0,2.25), fontsize=11, color='black')
-    c += text('GFun', (0,0), fontsize=22, color='black')
-    (b+c+a).show(figsize=8,axes=false)
+    c += text(genfun, (0, 2.25), fontsize=11, color='black')
+    c += text('GFun', (0, 0), fontsize=22, color='black')
+    (b + c + a).show(figsize=8, axes=false)
 
 
 ########################################################################
@@ -138,11 +143,11 @@ class gfun(object):
         if typ == 'rev':
             if P[0] != 0 and not strict:
                 return gfun.reversion_ext(P)
-            if P.valuation() <>  1:
+            if P.valuation() <> 1:
                 raise ValueError('Series must have valuation one for reversion.')
             return P.reversion()
         if typ == 'inv':
-            if P.valuation() <>  0:
+            if P.valuation() <> 0:
                 raise ValueError('Series must have valuation zero for inversion.')
             return P.__invert__()
         if typ == 'int':
@@ -150,9 +155,9 @@ class gfun(object):
         if typ == 'der':
             return P.derivative()
         if typ == 'logder':
-            if P.valuation() <>  0:
+            if P.valuation() <> 0:
                 raise ValueError('Series must have valuation zero for inversion.')
-            return P.derivative()/P
+            return P.derivative() / P
         if typ == 'log':
             if P[0] <> 1:
                 raise ValueError('Series must have constant term one for logarithm.')
@@ -164,16 +169,16 @@ class gfun(object):
 
     ###############################################
     @staticmethod
-    def taylor_series(gf, n, typ, strict = false):
-        g = SR(gf) # make sure that we get an symbolic expression
-        R.<x> = PowerSeriesRing(SR, default_prec = n)
+    def taylor_series(gf, n, typ, strict=false):
+        g = SR(gf)  # make sure that we get an symbolic expression
+        R.<x> = PowerSeriesRing(SR, default_prec=n)
         if g.variables() == (): return R(g)
         T = taylor(g, g.variables()[0], 0, n).coefficients()
         P = R(padded_dict(T, n))
         return gfun.transform(P, typ, strict)
 
     ###############################################
-    def __init__(self, g, op = None):
+    def __init__(self, g, op=None):
         self.gfun = g
         self.prec = 20
         self.typ = op
@@ -212,7 +217,7 @@ class gfun(object):
             sage: f.lgf_to_ogf()
             t + 3*t^2 + 4*t^3
         """
-        return s.parent()([s[i]*(-1)^(i+1)*i for i in range(s.degree()+1)])
+        return s.parent()([s[i] * (-1)^(i + 1) * i for i in range(s.degree() + 1)])
 
     ###############################################
     @staticmethod
@@ -228,16 +233,16 @@ class gfun(object):
             sage: f.lgf_to_ogf()
             t - 3*t^2 + 7*t^3
         """
-        return s.parent()([s[i] * 2^i for i in range(s.degree()+1)])
+        return s.parent()([s[i] * 2 ^ i for i in range(s.degree() + 1)])
 
     ###############################################
-    def as_series(self, prec = 12):
+    def as_series(self, prec=12):
         self.check_prec(prec)
         return self.PS.add_bigoh(prec)
 
     ###############################################
     ## Symbolic Ring -> List
-    def as_seq(self, n, search, typ = 'ogf', coeffs = false):
+    def as_seq(self, n, search, typ='ogf', coeffs=false):
         self.check_prec(n)
 
         if typ == 'egf':
@@ -254,32 +259,32 @@ class gfun(object):
             return [R(P[n]).padded_list() for n in range(n)]
 
         L = P.padded_list(n)
-        if search: print OEIS(L,4,info=true)
+        if search: print OEIS(L, 4, info=true)
         return L
 
     ###############################################
     ## Symbolic Ring -> List
-    def as_ogf(self, n = 12, search=false):
+    def as_ogf(self, n=12, search=false):
         return self.as_seq(n, search, 'ogf')
 
     ## Symbolic Ring -> List
-    def as_egf(self, n = 12, search=false):
+    def as_egf(self, n=12, search=false):
         return self.as_seq(n, search, 'egf')
 
     ## Symbolic Ring -> List
-    def as_lgf(self, n = 12, search=false):
+    def as_lgf(self, n=12, search=false):
         return self.as_seq(n, search, 'lgf')
 
     ## Symbolic Ring -> List
-    def as_bgf(self, n = 12, search=false):
+    def as_bgf(self, n=12, search=false):
         return self.as_seq(n, search, 'bgf')
 
     ## Symbolic Ring -> Triangular List of Lists
-    def coeffs(self, typ = 'ogf', rows = 8):
+    def coeffs(self, typ='ogf', rows=8):
         return self.as_seq(rows, false, typ, true)
 
     ## Symbolic Ring -> Rectangular List of Lists
-    def values(self, typ = 'ogf', rows = 8, cols = 8):
+    def values(self, typ='ogf', rows=8, cols=8):
         L = self.as_seq(rows, false, typ)
         return [[L[n](x=k) for n in range(rows)] for k in range(cols)]
 
@@ -322,41 +327,95 @@ class gfun(object):
     def explore_values(gen, typ='ogf', rows=6, cols=6):
         L = gen.values(typ, 9, cols)
         for n in range(rows):
-            print "row",[n], L[n]
-            print OEIS(L[n],4,info=true)
+            print "row", [n], L[n]
+            print OEIS(L[n], 4, info=true)
             print
         for n in range(cols):
             gf = gen.colgenerators(n, typ)
             M = gfun(gf).as_ogf(9)
-            print "col",[n], M
-            print OEIS(M,4,info=true)
+            print "col", [n], M
+            print OEIS(M, 4, info=true)
             print
         print 'Done!'
 
     ###############################################
+    def colgenerators(self, n, typ='ogf'):
+        from sage.calculus.calculus import symbolic_sum
+
+        x, j = SR.var('x, j')
+        assume(abs(x) < 1)
+        P = self.as_seq(n + 1, false, typ)
+        p = symbolic_sum(x^j * P[n].substitute(x=j), j, 0, oo)
+        return p.partial_fraction()
+
+    ###############################################
     # Thanks to Ralf Stephan for help with the implementation.
-    def associates(self, typ = 'ogf', prec=8):
+    def succ(self, typ='ogf', prec=8):
         from sage.calculus.calculus import symbolic_sum
         x, j = SR.var('x, j')
-        assume(abs(x)<1)
+        assume(abs(x) < 1)
         L = []
         P = self.as_seq(prec, false, typ)
         for k, m in enumerate(P):
-            p = symbolic_sum(x^j*m.substitute(x=j), j, 0, oo)
-            q = p.numerator().polynomial(ZZ)/p.denominator().polynomial(ZZ)
+            p = symbolic_sum(x^j * m.substitute(x=j), j, 0, oo)
+            q = p.numerator().polynomial(ZZ) / p.denominator().polynomial(ZZ)
             f = q.partial_fraction_decomposition()
-            C = [0 for _ in range(k+1)]
+            C = [0 for _ in range(k + 1)]
             for h in f[1]:
-                i = h.denominator().degree()
-                C[i-1] = Integer(h.numerator())
+                i = h.denominator().degree() - 1
+                C[i] = Integer((-1)^(k + 1)*h.numerator()/factorial(i))
             L.append(C)
         return L
 
     ###############################################
-    def colgenerators(self, n, typ = 'ogf'):
-        from sage.calculus.calculus import symbolic_sum
-        x, j = SR.var('x, j')
-        assume(abs(x)<1)
-        P = self.as_seq(n+1, false, typ)
-        p = symbolic_sum(x^j*P[n].substitute(x=j), j, 0, oo)
-        return p.partial_fraction()
+    def pred(self, typ = 'ogf', prec=8):
+        x = SR.var('x')
+        PR = PolynomialRing(QQ, 'x')
+        P = self.coeffs(typ, prec)
+        A = []
+        for n, p in enumerate(P):
+            W = sum(factorial(j) * p[j] / (x - 1)^(j + 1) for j in (0..n))
+            T = SR(W).taylor(x, 0, n + 2).coefficients()
+            C = padded_dict(T, n)
+            xy = [(k, C[k]) for k in (0..n)]
+            L = PR(PR.lagrange_polynomial(xy))
+            A.append([(-1)^(n + 1) * c for c in L.coeffs()])
+        return A
+
+
+###############################################
+### Transformations
+###############################################
+def Succ(T, len):
+    from sage.calculus.calculus import symbolic_sum
+    x, v = SR.var('x, v')
+    PR = PolynomialRing(QQ, 'x')
+    assume(abs(x) < 1)
+    L = []
+    for k in range(len):
+        h = PR(sum(T(k,j) * x^j for j in (0..k)))
+        p = symbolic_sum(x^v * h.substitute(x=v), v, 0, oo)
+        q = p.numerator().polynomial(ZZ) / p.denominator().polynomial(ZZ)
+        f = q.partial_fraction_decomposition()
+        C = [0 for _ in range(k + 1)]
+        for h in f[1]:
+            i = h.denominator().degree() - 1
+            C[i] = Integer((-1)^(k + 1)*h.numerator() / factorial(i))
+        L.append(C)
+    return L
+
+###############################################
+def Pred(T, len):
+    PR = PolynomialRing(QQ, 'x')
+    A = []
+    for n in range(len):
+        W = sum(factorial(j) * T(n,j) / (x - 1)^(j + 1) for j in (0..n))
+        S = SR(W).taylor(x, 0, n + 2).coefficients()
+        C = [0] * (n + 1)
+        for s in S:  # padding
+            if s[1] > n: break
+            C[s[1]] = s[0]
+        xy = [(k, C[k]) for k in (0..n)]
+        L = PR(PR.lagrange_polynomial(xy))
+        A.append([(-1)^(n + 1) * c for c in L.coeffs()])
+    return A
