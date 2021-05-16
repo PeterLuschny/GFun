@@ -23,7 +23,7 @@ def OEIS(T, num, info=false):  # needs internet
     R = oeis(S, max_results=num)
 
     if len(R) == 0:
-        U = filter(lambda z: z != 0, S)
+        U = [z for z in S if z != 0]
         del U[0]
         R = oeis(U, max_results=num)
 
@@ -38,7 +38,7 @@ def OEIS(T, num, info=false):  # needs internet
         L.append(s)
         if info:
             K = oeis(i).first_terms(10)
-            print s, K
+            print(s, K)
 
     return L
 
@@ -143,11 +143,11 @@ class gfun(object):
         if typ == 'rev':
             if P[0] != 0 and not strict:
                 return gfun.reversion_ext(P)
-            if P.valuation() <> 1:
+            if P.valuation() != 1:
                 raise ValueError('Series must have valuation one for reversion.')
-            return P.reversion()
+            return P.reverse()
         if typ == 'inv':
-            if P.valuation() <> 0:
+            if P.valuation() != 0:
                 raise ValueError('Series must have valuation zero for inversion.')
             return P.__invert__()
         if typ == 'int':
@@ -155,11 +155,11 @@ class gfun(object):
         if typ == 'der':
             return P.derivative()
         if typ == 'logder':
-            if P.valuation() <> 0:
+            if P.valuation() != 0:
                 raise ValueError('Series must have valuation zero for inversion.')
             return P.derivative() / P
         if typ == 'log':
-            if P[0] <> 1:
+            if P[0] != 1:
                 raise ValueError('Series must have constant term one for logarithm.')
             return P.log()
         if typ == 'exp':
@@ -198,10 +198,10 @@ class gfun(object):
 
     ###############################################
     def dump(self):
-        print 'Type ord/rev/inv etc.: ' + str(self.typ)
-        print 'Strict reversion on: ' + str(self.strict_rev)
-        print 'Formal power series: ' + str(self.gfun)
-        print 'Coefficients: ' + str(self.PS.padded_list(6))
+        print('Type ord/rev/inv etc.: ' + str(self.typ))
+        print('Strict reversion on: ' + str(self.strict_rev))
+        print('Formal power series: ' + str(self.gfun))
+        print('Coefficients: ' + str(self.PS.padded_list(6)))
 
     ###############################################
     @staticmethod
@@ -260,7 +260,7 @@ class gfun(object):
             return [[R(P[n])[i] for i in (0..n)] for n in (0..n)]
 
         L = P.padded_list(n)
-        if search: print OEIS(L, 4, info=true)
+        if search: print(OEIS(L, 4, info=true))
         return L
 
     ###############################################
@@ -292,8 +292,8 @@ class gfun(object):
     ###############################################
     @staticmethod
     def explore_genfun(fps):
-        print 'Formal power series: ', fps
-        print
+        print('Formal power series: ', fps)
+        print()
 
         B = [0 for _ in range(32)]
         c = 0
@@ -310,34 +310,34 @@ class gfun(object):
                     L = func()
                     if is_intseq(L):
                         B[c] = true
-                        print op, funcname, L[:9]
+                        print(op, funcname, L[:9])
                         O = OEIS(L, 4, info=true)
-                        if O <> []:
-                            print O
+                        if O != []:
+                            print(O)
                             B[c] = 1
                         else:
                             B[c] = -1
-                        print
+                        print()
                 c += 1
 
         plot_gfun(B, fps)
-        print 'Done!'
+        print('Done!')
 
     ###############################################
     @staticmethod
     def explore_values(gen, typ='ogf', rows=6, cols=6):
         L = gen.values(typ, 9, cols)
         for n in range(rows):
-            print "row", [n], L[n]
-            print OEIS(L[n], 4, info=true)
-            print
+            print("row", [n], L[n])
+            print(OEIS(L[n], 4, info=true))
+            print()
         for n in range(cols):
             gf = gen.colgenerators(n, typ)
             M = gfun(gf).as_ogf(9)
-            print "col", [n], M
-            print OEIS(M, 4, info=true)
-            print
-        print 'Done!'
+            print("col", [n], M)
+            print(OEIS(M, 4, info=true))
+            print()
+        print('Done!')
 
     ###############################################
     def colgenerators(self, n, typ='ogf'):
