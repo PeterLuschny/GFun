@@ -43,7 +43,7 @@ def OEIS(T, num, info=false):  # needs internet
                 del Ux[-1]
             else:
                 del Ux[-1]
-            R = oeis(U, max_results=num)
+            R = oeis(Ux, max_results=num)
 
     L = []
     for r in R:
