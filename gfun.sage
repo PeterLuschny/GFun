@@ -16,16 +16,34 @@ def OEIS(T, num, info=false):  # needs internet
     if len(T) < 3: return []
 
     # disregard the first entry and trailing zeros
-    i, l = 1, len(T)
+    i, l = 0, len(T)
     while i < l and T[i] == 0: i += 1
     S = T[i:min(l, 20)] if (min(l, 20) - i) > 6 else T
 
     R = oeis(S, max_results=num)
 
     if len(R) == 0:
+        # what if S is too long?
+        Sx = S[:]
+        while len(", ".join([str(a) for a in Sx])) > 270:
+            del Sx[-1]
+        else:
+            del Sx[-1]
+        R = oeis(Sx, max_results=num)
+
+    if len(R) == 0:
         U = [z for z in S if z != 0]
         del U[0]
         R = oeis(U, max_results=num)
+
+        if len(R) == 0:
+            # what if U is too long?
+            Ux = U[:]
+            while len(", ".join([str(a) for a in Ux])) > 270:
+                del Ux[-1]
+            else:
+                del Ux[-1]
+            R = oeis(U, max_results=num)
 
     L = []
     for r in R:
@@ -133,7 +151,7 @@ class gfun(object):
         """
         r = g / g[0]
         r = r.shift(1)
-        r = r.reversion()
+        r = r.reverse()
         r = r.shift(-1)
         return r * g[0]
 
