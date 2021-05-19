@@ -16,7 +16,7 @@ def OEIS(T, num, info=false):  # needs internet
     if len(T) < 3: return []
 
     # disregard the first entry and trailing zeros
-    i, l = 0, len(T)
+    i, l = 1, len(T)
     while i < l and T[i] == 0: i += 1
     S = T[i:min(l, 20)] if (min(l, 20) - i) > 6 else T
 
